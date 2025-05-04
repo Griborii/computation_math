@@ -16,6 +16,8 @@ def implicit_runge_kutt(a, b, c, n, start, finish, start_val, func):
     h = (finish - start) / n
     val = np.copy(start_val)
     t = start
+    vals = [val]
+    time_grid = [0]
     for i in range(n):
         val_mid = [val] # промежуточные значения функции
         t_mid = [t] # промежуточные значения времени
@@ -24,18 +26,20 @@ def implicit_runge_kutt(a, b, c, n, start, finish, start_val, func):
             const1 = val + h * sum([a[j][k] * func(val_mid[k], t_mid[k]) for k in range(j)])
             # print("const:", const1)
             def equation(x):
-                return x - func(x, t + c[j] * h) * a[j][j] - const1
+                return x - func(x, t + c[j] * h) * a[j][j] * h - const1
             slve = fsolve(equation, x0=val)
-            print(f"solve: {slve}, solve_prec: {slve - func(slve, t + c[j] * h) * a[j][j] - const1}")
+            # print(f"solve: {slve}, solve_prec: {slve - func(slve, t + c[j] * h) * a[j][j] - const1}")
             val_mid.append(np.copy(slve))
         t += h
+        time_grid.append(t)
         dif = [func(val_mid[k], t_mid[k]) for k in range(len(b))]
         # print("bubu: ", h, scal_prod(b, dif))
         val += h * scal_prod(b, dif)
-        print(f"time: {t}")
-        print(f"dif: {dif}")
-        print("val: ", val)
-    return val
+        vals.append(np.copy(val))
+        # print(f"time: {t}")
+        # print(f"dif: {dif}")
+        # print("val: ", val)
+    return (vals, time_grid)
 
 
 def euler_method(n, start, finish, srart_val, func):
@@ -55,7 +59,6 @@ def k_1(t):
 
 k = [k_1, 10**5, 10**(-16)]
 
-
 def func2(c, t):
     a_1 = k[0](t)*c[2]
     a_2 = k[1] * c[0]
@@ -63,77 +66,43 @@ def func2(c, t):
     # print(a_1, a_2, a_3)
     return np.copy(np.array([a_1 - a_2, a_1 - a_3, a_3 - a_1, a_2 - a_3]))
 
-def explicit_runge_kutt_animated(a, b, c, n, h, start, start_val, func):
-    # print("pace is: ", h)
-    val = np.copy(start_val)
-    vals = [np.copy(val)]
-    t = start
-    for i in range(n):
-        val_mid = [val]
-        t_mid = [t]
-        for j in range(1, len(b)):
-            t_mid.append(t + c[j] * h)
-            val_mid.append(val + h * sum([a[j][k] * func(val_mid[k], t_mid[k]) for k in range(j)]))
-        t += h
-        dif = [func(val_mid[k], t_mid[k]) for k in range(len(b))]
-        vals.append(np.copy(val))
-        val += h * scal_prod(b, dif)
-
-    def animate(frame):
-        if frame == 0:
-            x_side = max([abs(vals[i][0]) for i in range(len(vals))])
-            y_side = max([abs(vals[i][1]) for i in range(len(vals))])
-            ax.set_ylim(-y_side * 1,5, y_side * 1,5)
-            ax.set_xlim(-x_side * 1,5, x_side * 1,5)
-            line.set_ydata([-y_side, y_side])
-            line.set_xdata([-x_side, x_side])
-            return line,
-
-        x = np.array([vals[i][0] for i in range(frame + 2)])
-        y = np.array([vals[i][1] for i in range(frame + 2)])
-        line.set_ydata(y)
-        line.set_xdata(x)
-
-        # Меняем пределы осей (пример: подстраиваем под текущий максимум и минимум)
-        y_min = np.min(y)
-        y_max = np.max(y)
-        padding = 0.1 * (y_max - y_min)  # Небольшой отступ сверху и снизу
-        ax.set_ylim(y_min - padding, y_max + padding) #Установка пределов
-
-        x_min = np.min(x)
-        x_max = np.max(x)
-        padding = 0.1 * (x_max - x_min)  # Небольшой отступ сверху и снизу
-        ax.set_xlim(x_min - padding, x_max + padding) #Установка пределов
-
-        return line,  # Важно: возвращаем изменяемый объект (line,)
-
-    fig, ax = plt.subplots()
-    x_side = max([abs(vals[i][0]) for i in range(len(vals))])
-    y_side = max([abs(vals[i][1]) for i in range(len(vals))])
-    line, = ax.plot([-x_side, x_side], [-y_side, y_side])  # Инициализируем линию графика
-    ani = animation.FuncAnimation(fig, animate, frames=n, blit=True, repeat=False, interval=20)
-    plt.show()
-
-# a = [
-#      [1, 0, 0],
-#      [0, 1/3, 1],
-#      [-1/12, 3/4, 1/3]
-# ]
-# b = [-1/12, 3/4, 1/3]
-# c = [1, 1/3, 1]
-
 a = [
-     [0, 0, 0, 0],
-     [0.5, 0, 0, 0],
-     [0, 0.5, 0, 0],
-     [0, 0, 1, 0]
- ]
-b = [1/6, 1/3, 1/3, 1/6]
-c = [0, 0.5, 0.5, 1]
+     [1, 0, 0],
+     [0, 1/3, 1],
+     [-1/12, 3/4, 1/3]
+]
+b = [-1/12, 3/4, 1/3]
+c = [1, 1/3, 1]
 
 T = 24 * 60 * 60.0
 start_val = np.array([0.0, 0.0, 5e11, 8e11], dtype=np.float64)
-steps = 10000
+steps = 100
 
-explicit_runge_kutt_animated(a, b, c, 1000, T / 1000, 0, start_val, func2)
+def fnc(x, t):
+    return -x
+
+# implicit_runge_kutt(a, b, c, 10, 0, 1, np.array([1.0]), fnc)
+vals, time_grid = implicit_runge_kutt(a, b, c, steps, 0, T, start_val, func2)
+print(len(time_grid), len(vals))
+res = []
+for i in range(4):
+    res.append([])
+    for j in range(len(vals)):
+        res[i].append(vals[j][i])
+
+fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(20, 20))  # figsize=(ширина, высота)
+plt.tight_layout(pad=8.0)
+
+for i in range(2):
+    for j in range(2):
+        ind = i * 2 + j
+        axs[i, j].plot(res[ind], time_grid)
+        axs[i, j].set_title(f"c_{ind}(t)")
+        axs[i, j].set_xlabel('t')
+        axs[i, j].set_ylabel(f"c_{ind}")
+
+plt.legend()
+plt.show()
+# animation_html = explicit_runge_kutt_animated(a, b, c, 1000, T / 1000, 0, start_val, func2)
+# animation_html
 # print(euler_method(steps, 0, T * 2, start_val, func2))
