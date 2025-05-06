@@ -24,7 +24,7 @@ def explicit_runge_kutt(n, h, start, start_val, func):
         t_mid = [t]
         for j in range(1, len(b)):
             t_mid.append(t + c[j] * h)
-            val_mid.append(val + h * sum([a[j][k] * func(val_mid[k], t_mid) for k in range(j)]))
+            val_mid.append(val + h * sum([a[j][k] * func(val_mid[k], t_mid[k]) for k in range(j)]))
         t += h
         dif = [func(val_mid[k], t_mid[k]) for k in range(len(b))]
         vals.append(np.copy(val))
@@ -43,7 +43,6 @@ def wave(g, H, func, dt, dx, t_start, t_end, x_start, x_end):
     x = [x_start + i * dx for i in range(N_x + 1)]
     t = [t_start + i * dx for i in range(N_t + 1)]
     f_0 = [[0 for i in range(N_x + 1)], [func(x[i]) for i in range(N_x + 1)]]
-
     # вместо правой части производная по координате
     def minus_x_diff(vec, t):
         diff = [np.zeros(len(vec[0])), np.zeros(len(vec[0]))]
@@ -106,33 +105,49 @@ def gaus(x):
     d = 0.1
     return math.exp(-((x - 0.5) / d) ** 2)
 
-dt = 0.001
-dx = 0.001
+def fnc(x, t):
+    return x
+
+print(explicit_runge_kutt(100, 0.01, 0, 1.0, fnc))
+
+
 t_start = 0
 t_end = 1
 x_start = 0
 x_end = 1
 
-# калибровка длины шага, чтобы из вмещалось целое число
-N_t = int((t_end - t_start) / dt)
-dt = (t_end - t_start) / N_t
-N_x = int((x_end - x_start) / dx)
-dx = (x_end - x_start) / N_x
+dx_set = [1.5**i for i in range(5, 15)]
+kurant = 1
 
 start_func = gaus
-g = 5
+g = 1
 H = 1
 c = math.sqrt(g * H)
 
-res = wave(g, H, start_func, dt, dx, t_start, t_end, x_start, x_end)
-vals, x_grid, t_grid = res["result"]["values"], res["result"]["x_grid"], res["result"]["t_grid"]
-h_vals = []
-for i in range(len(vals)):
-    h_vals.append(np.copy(vals[i][1]))
+# dx_set = [1.5**(-i) for i in range(5, 15)]
+# sqrt_err = []
+# for dx in dx_set:
+#     dt = kurant * dx / c
+#     # калибровка длины шага, чтобы из вмещалось целое число
+#     N_t = int((t_end - t_start) / dt)
+#     dt = (t_end - t_start) / N_t
+#     N_x = int((x_end - x_start) / dx)
+#     dx = (x_end - x_start) / N_x
 
-# wave_animation(vals, x_grid)
-theor_vals = wave_eq_solve(c, func_sim(start_func, x_start, x_end), x_grid, t_grid)
-err = [np.max(h_vals[i] - theor_vals[i]) for i in range(len(t_grid))]
-# wave_animation(h_vals, x_grid)
-plt.plot(t_grid, err)
-plt.show()
+#     res = wave(g, H, start_func, dt, dx, t_start, t_end, x_start, x_end)
+#     vals, x_grid, t_grid = res["result"]["values"], res["result"]["x_grid"], res["result"]["t_grid"]
+#     h_vals = []
+#     for i in range(len(vals)):
+#         h_vals.append(np.copy(vals[i][1]))
+
+#     # wave_animation(vals, x_grid)
+#     theor_vals = wave_eq_solve(c, func_sim(start_func, x_start, x_end), x_grid, t_grid)
+#     err = np.array([np.max(h_vals[i] - theor_vals[i]) for i in range(len(t_grid))])
+#     sqrt_err.append(linalg.norm(err, ord = 2) / math.sqrt(N_t))
+# # wave_animation(h_vals, x_grid)
+# plt.xlabel('ln(dx)')
+# plt.ylabel('ln(err)')
+# ln_dx_set = [math.log(dx_set[i]) for i in range(len(dx_set))]
+# ln_sqrt_err = [math.log(sqrt_err[i]) for i in range(len(sqrt_err))]
+# plt.plot(ln_dx_set, ln_sqrt_err)
+# plt.show()
