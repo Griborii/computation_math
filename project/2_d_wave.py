@@ -70,7 +70,7 @@ def wave_2d(g, H, f, func, dt, dx, dy, t_start, t_end, x_start, x_end, y_start, 
                 diff[1][i][j] = -g * (matr[2][i][j_pl_1] - matr[2][i][j_min_1]) / (2 * dy)
                 diff[1][i][j] -= f * matr[0][i][j]
                 diff[2][i][j] = -H * (matr[0][i_pl_1][j] - matr[0][i_min_1][j]) / (2 * dx)
-                diff[2][i][j] -= -H * (matr[1][i][j_pl_1] - matr[1][i][j_min_1]) / (2 * dy)
+                diff[2][i][j] += -H * (matr[1][i][j_pl_1] - matr[1][i][j_min_1]) / (2 * dy)
         return np.array([diff[0], diff[1], diff[2]])
 
     # МРК 4 для шага по времени
@@ -92,7 +92,7 @@ def wave_2d_animation(rk_val, x_y_grid):
         im.set_array(data)
         return im,
 
-    ani = animation.FuncAnimation(fig, update_fig, interval=100, blit=True)
+    ani = animation.FuncAnimation(fig, update_fig, interval=200, blit=True)
     plt.show()  
 # def wave_1d_eq_solve(c, start_func, x_grid, t_grid):
 #     theor_vals = []
@@ -116,6 +116,10 @@ def x_gaus(x, y):
     d = 0.1
     return math.exp(-((x - 0.5) / d) ** 2)
 
+def rad_gaus(x, y):
+    d = 0.1
+    return math.exp(-((x - 0.5)**2 + (y - 0.5)**2) / d**2)
+
 t_start = 0
 t_end = 1
 x_start = 0
@@ -123,15 +127,15 @@ x_end = 1
 y_start = 0
 y_end = 1
 
-start_func = x_gaus
+start_func = rad_gaus
 f = 10
-g = 4
+g = 1
 H = 1
 c = math.sqrt(g * H)
 
-dx = 0.02
-dy = 0.02
-dt = 0.01
+dx = 0.05
+dy = 0.05
+dt = 0.05
 res = wave_2d(g, H, f, start_func, dt, dx, dy, t_start, t_end, x_start, x_end, y_start, y_end)
 vals, x_y_grid, t_grid = res["result"]["values"], res["result"]["x_y_grid"], res["result"]["t_grid"]
 h_vals = []
