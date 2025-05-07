@@ -30,7 +30,7 @@ def explicit_runge_kutt(n, h, start, start_val, func):
         vals.append(np.copy(val))
     return vals
 
-def wave(g, H, func, dt, dx, t_start, t_end, x_start, x_end):
+def wave_1d(g, H, func, dt, dx, t_start, t_end, x_start, x_end):
     # калибровка длины шага, чтобы из вмещалось целое число
     N_t = int((t_end - t_start) / dt)
     dt = (t_end - t_start) / N_t
@@ -60,7 +60,7 @@ def wave(g, H, func, dt, dx, t_start, t_end, x_start, x_end):
     rk_res =  explicit_runge_kutt(N_t, dt, t_start, f_0, minus_x_diff) 
     return {"result": {"values": rk_res, "x_grid": x, "t_grid": t}}
 
-def wave_animation(rk_val, x_grid):
+def wave_1d_animation(rk_val, x_grid):
     # анимация
     fig, ax = plt.subplots()
     line, = ax.plot(x_grid, rk_val[0])  # Инициализируем линию графика
@@ -82,7 +82,7 @@ def wave_animation(rk_val, x_grid):
     )
     plt.show()
     
-def wave_eq_solve(c, start_func, x_grid, t_grid):
+def wave_1d_eq_solve(c, start_func, x_grid, t_grid):
     theor_vals = []
     for i in range(len(t_grid)):
         theor_vals.append(np.zeros(len(x_grid)))
@@ -103,4 +103,3 @@ def func_sim(func, x_left, x_right):
 def gaus(x):
     d = 0.1
     return math.exp(-((x - 0.5) / d) ** 2)
-
