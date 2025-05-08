@@ -5,6 +5,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy import linalg
+import warnings
 
 def explicit_runge_kutt(n, h, start, start_val, func):
     a = [
@@ -32,6 +33,10 @@ def explicit_runge_kutt(n, h, start, start_val, func):
 
 def wave_2d(g, H, f, func, dt, dx, dy, t_start, t_end, x_start, x_end, y_start, y_end):
     # калибровка длины шага, чтобы из вмещалось целое число
+    st_param = dt * g * H * (1 / dx**2 + 1 / dy**2)
+    print(f"st_param = {st_param}")
+    if st_param > 2.8:
+        warnings.warn(f"Это может быть не устойчиво, st_param = {st_param} > 2.8", UserWarning)
     N_t = int((t_end - t_start) / dt)
     dt = (t_end - t_start) / N_t
     N_x = int((x_end - x_start) / dx)
@@ -133,16 +138,15 @@ g = 1
 H = 1
 c = math.sqrt(g * H)
 
-dx = 0.05
-dy = 0.05
-dt = 0.05
+dx = 0.02
+dy = 0.02
+dt = 0.01
 res = wave_2d(g, H, f, start_func, dt, dx, dy, t_start, t_end, x_start, x_end, y_start, y_end)
 vals, x_y_grid, t_grid = res["result"]["values"], res["result"]["x_y_grid"], res["result"]["t_grid"]
 h_vals = []
 for i in range(len(vals)):
     h_vals.append(np.copy(vals[i][2]))
 
-print(h_vals)
 wave_2d_animation(h_vals, x_y_grid)
 # print(f"kurant number is: {c * dt / dx}")
 # wave_animation(h_vals, x_grid)
