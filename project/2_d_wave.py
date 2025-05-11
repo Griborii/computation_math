@@ -97,7 +97,7 @@ def wave_2d_animation(rk_val, x_y_grid):
         im.set_array(data)
         return im,
 
-    ani = animation.FuncAnimation(fig, update_fig, interval=200, blit=True)
+    ani = animation.FuncAnimation(fig, update_fig, interval=100, blit=True)
     plt.show()  
 # def wave_1d_eq_solve(c, start_func, x_grid, t_grid):
 #     theor_vals = []
@@ -133,14 +133,14 @@ y_start = 0
 y_end = 1
 
 start_func = rad_gaus
-f = 10
+f = 40
 g = 1
 H = 1
 c = math.sqrt(g * H)
 
 dx = 0.02
 dy = 0.02
-dt = 0.01
+dt = 0.0025
 res = wave_2d(g, H, f, start_func, dt, dx, dy, t_start, t_end, x_start, x_end, y_start, y_end)
 vals, x_y_grid, t_grid = res["result"]["values"], res["result"]["x_y_grid"], res["result"]["t_grid"]
 h_vals = []
