@@ -1,7 +1,7 @@
 from funcs import *
 
 t_start = 0
-t_end = 1
+t_end = 100
 x_start = 0
 x_end = 1
 
@@ -12,7 +12,7 @@ c = math.sqrt(g * H)
 
 dx = 0.01
 dt = 0.01
-res = wave_1d(g, H, start_func, dt, dx, t_start, t_end, x_start, x_end)
+res = wave_1d_SBP(g, H, start_func, dt, dx, t_start, t_end, x_start, x_end)
 vals, x_grid, t_grid = res["result"]["values"], res["result"]["x_grid"], res["result"]["t_grid"]
 h_vals = []
 for i in range(len(vals)):

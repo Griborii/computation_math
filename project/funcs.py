@@ -103,3 +103,51 @@ def func_sim(func, x_left, x_right):
 def gaus(x):
     d = 0.1
     return math.exp(-((x - 0.5) / d) ** 2)
+
+def wave_1d_SBP(g, H_0, func, dt, dx, t_start, t_end, x_start, x_end):
+    # калибровка длины шага, чтобы из вмещалось целое число
+    N_t = int((t_end - t_start) / dt)
+    dt = (t_end - t_start) / N_t
+    N_x = int((x_end - x_start) / dx)
+    dx = (x_end - x_start) / N_x
+    c = math.sqrt(g * H_0)
+
+    # начальный вектор значений функции при x от 0 до 1 при t = 0
+    x = [x_start + i * dx for i in range(N_x + 1)]
+    t = [t_start + i * dt for i in range(N_t + 1)]
+    f_0 = [np.array([0 for i in range(N_x + 1)]), np.array([func(x[i]) for i in range(N_x + 1)])]
+
+    H = np.eye(N_x + 1)
+    H[0][0], H[1][1], H[2][2], H[3][3] = (17/48, 59/48, 43/48, 49/48)
+    for i in range(4):
+        H[N_x - i][N_x - i] = H[i][i]
+    Q = np.zeros((N_x + 1, N_x + 1))
+    Q[0][0], Q[0][1], Q[0][2], Q[0][3], Q[1][2], Q[1][3], Q[2][3], Q[2][4], Q[3][4], Q[3][5] = (
+        -1/2, 59/96, -1/12, -1/32, 59/96, 0.0, 59/96, -1/12, 2/3, -1/12
+    )
+    for i in range(4):
+        for j in range(0, i):
+            Q[i][j] = - Q[j][i]
+    
+    for i in range(4, N_x - 3):
+        Q[i][i-2:i+3] = (1/12, -2/3, 0.0, 2/3, -1/12)
+    
+    for i in range(4):
+        for j in range(6):
+            Q[N_x - i][N_x - j] = - Q[i][j]
+    
+    D = np.linalg.inv(H) @ Q
+    # вместо правой части производная по координате
+    def minus_x_diff(vec, t):
+        u = np.copy(vec[0])
+        h = np.copy(vec[1])
+        e_1 = np.zeros(N_x + 1)
+        e_1[0] = 1
+        e_n = np.zeros(N_x + 1)
+        e_n[N_x] = 1
+        return np.array([-g*D@h / dx, H_0*(-D@u - u[0]*e_1 + u[N_x]*e_n) / dx])
+
+    # МРК 4 для шага по времени
+    # вместо правой части в explicit_runge_kutt кидаем производную по координате
+    rk_res =  explicit_runge_kutt(N_t, dt, t_start, f_0, minus_x_diff) 
+    return {"result": {"values": rk_res, "x_grid": x, "t_grid": t}}
